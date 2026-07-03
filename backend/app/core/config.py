@@ -1,5 +1,8 @@
 from pathlib import Path
 from functools import lru_cache
+from typing import Annotated
+
+from fastapi import Depends
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -32,6 +35,7 @@ class Settings(BaseSettings):
     def mongo_uri(self) -> str:
         return f"mongodb+srv://{self.mongo_user}:{self.mongo_password.get_secret_value()}@{self.mongo_host}/?appName={self.mongo_name}"
 
+
     # Load settings from .env
     model_config = SettingsConfigDict(env_file=_ENV_PATH)
 
@@ -42,3 +46,5 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+settings_dependency = Annotated[Settings, Depends(get_settings)]
