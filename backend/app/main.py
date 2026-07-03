@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from core.config import get_settings
+from core.config import get_settings, settings_dependency
 from core.database import connect_to_mongo, disconnect_from_mongo
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await connect_to_mongo()
+    await connect_to_mongo(get_settings())
     yield
     await disconnect_from_mongo()
 
