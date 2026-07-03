@@ -8,6 +8,7 @@ dependencies = [
     "beanie>=2.1.0",
     "black>=26.5.1",
     "fastapi[standard]>=0.138.2",
+    "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",
     "tenacity>=9.1.4",
 ]

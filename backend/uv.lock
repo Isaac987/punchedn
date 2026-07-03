@@ -40,6 +40,7 @@ dependencies = [
     { name = "beanie" },
     { name = "black" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "tenacity" },
 ]
@@ -49,6 +50,7 @@ requires-dist = [
     { name = "beanie", specifier = ">=2.1.0" },
     { name = "black", specifier = ">=26.5.1" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.138.2" },
+    { name = "pydantic", specifier = ">=2.13.4" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "tenacity", specifier = ">=9.1.4" },
 ]
