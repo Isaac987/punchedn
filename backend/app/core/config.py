@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import Depends
 from pydantic import Field, SecretStr, computed_field
@@ -11,10 +11,10 @@ _ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
-    # Production details
-    debug: bool = False
-
     # App details
+    app_env: Literal["development", "testing", "production"] = Field(
+        default="development"
+    )
     app_name: str = "PunchedN"
     app_description: str = (
         "API to assist with employee scheduling, and shift management."
@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     app_version: str = "v1"
     app_docs_url: str = "/docs"
     app_redoc_url: str = "/redoc"
+
+    # Log settings
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = (
+        "DEBUG" if app_env == "development" else "INFO"
+    )
+    log_json: bool = app_env != "development"
 
     # Database settings
     mongo_user: str = Field(default="")
@@ -46,7 +52,9 @@ class Settings(BaseSettings):
         return str(url)
 
     model_config = SettingsConfigDict(
-        env_file=_ENV_PATH, extra="ignore", env_ignore_empty=True
+        env_file=_ENV_PATH,
+        extra="ignore",
+        env_ignore_empty=True,
     )
 
 
