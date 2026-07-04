@@ -2,7 +2,7 @@ from typing import Annotated
 from pymongo import AsyncMongoClient
 from pymongo.errors import PyMongoError
 from tenacity import retry, stop_after_attempt, wait_exponential
-from core.config import Settings, get_settings, settings_dependency
+from core.config import Settings, get_settings, AppSettings
 
 _client: AsyncMongoClient
 
@@ -16,7 +16,7 @@ async def _ping(client: AsyncMongoClient):
     await client.admin.command("ping")
 
 
-async def connect_to_mongo(settings: settings_dependency) -> None:
+async def connect_to_mongo(settings: AppSettings) -> None:
     global _client
 
     _client = AsyncMongoClient(
@@ -37,4 +37,4 @@ async def disconnect_from_mongo() -> None:
 
 
 async def get_client() -> AsyncMongoClient:
-     return _client
+    return _client

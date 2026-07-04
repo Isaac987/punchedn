@@ -1,15 +1,18 @@
-from pathlib import Path
 from functools import lru_cache
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Depends
-from pydantic import SecretStr
+from pydantic import Field, SecretStr, computed_field
+from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_ENV_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
+_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 
 
 class Settings(BaseSettings):
+    # Production details
+    debug: bool = False
 
     # App details
     app_name: str = "PunchedN"
@@ -19,32 +22,35 @@ class Settings(BaseSettings):
     app_version: str = "v1"
     app_docs_url: str = "/docs"
     app_redoc_url: str = "/redoc"
-    admin_email: str
-    debug: bool = False
 
     # Database settings
-    mongo_user: str
-    mongo_password: SecretStr
-    mongo_host: str
-    mongo_name: str
+    mongo_user: str = Field(default=...)
+    mongo_password: SecretStr = Field(default=...)
+    mongo_host: str = Field(default=...)
+    mongo_name: str = Field(default=...)
     mongo_min_pool_size: int = 10
     mongo_max_pool_size: int = 100
     mongo_ping_attempts: int = 5
 
+    @computed_field
     @property
     def mongo_uri(self) -> str:
-        return f"mongodb+srv://{self.mongo_user}:{self.mongo_password.get_secret_value()}@{self.mongo_host}/?appName={self.mongo_name}"
+        url = MultiHostUrl.build(
+            scheme="mongodb+srv",
+            username=self.mongo_user,
+            password=self.mongo_password.get_secret_value(),  # Still needed internally for building
+            host=self.mongo_host,
+            query=f"appName={self.mongo_name}",
+        )
 
+        return str(url)
 
-    # Load settings from .env
     model_config = SettingsConfigDict(env_file=_ENV_PATH)
 
 
-# We are handling settings like this so we can test other settings via dependency injection.
-# lru_cache will only create the settings object once, so there is not a constant need to read the .env file.
-# https://fastapi.tiangolo.com/advanced/settings/?h=sett#creating-the-settings-only-once-with-lru-cache
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
 
-settings_dependency = Annotated[Settings, Depends(get_settings)]
+
+AppSettings = Annotated[Settings, Depends(get_settings)]
