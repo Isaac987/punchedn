@@ -1,19 +1,29 @@
-from typing import Annotated
 from pymongo import AsyncMongoClient
 from pymongo.errors import PyMongoError
-from tenacity import retry, stop_after_attempt, wait_exponential
-from core.config import Settings, get_settings, AppSettings
+from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
+
+from core.config import AppSettings
 
 _client: AsyncMongoClient
 
 
-@retry(
-    stop=stop_after_attempt(get_settings().mongo_ping_attempts),
-    wait=wait_exponential(multiplier=1, min=1, max=10),
-    reraise=True,
-)
-async def _ping(client: AsyncMongoClient):
-    await client.admin.command("ping")
+# @retry(
+#     stop=stop_after_attempt(settings.mongo_ping_attempts),
+#     wait=wait_exponential(multiplier=1, min=1, max=10),
+#     reraise=True,
+# )
+# async def _ping(client: AsyncMongoClient, settings: AppSettings):
+#     await client.admin.command("ping")
+
+
+async def _ping(client: AsyncMongoClient, retry: int = 1):
+    async for attempt in AsyncRetrying(
+        stop=stop_after_attempt(retry),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        reraise=True,
+    ):
+        with attempt:
+            await client.admin.command("ping")
 
 
 async def connect_to_mongo(settings: AppSettings) -> None:
@@ -26,7 +36,7 @@ async def connect_to_mongo(settings: AppSettings) -> None:
     )
 
     try:
-        await _ping(_client)
+        await _ping(_client, retry=settings.mongo_ping_attempts)
     except PyMongoError:
         pass
         # TODO: Log the error
