@@ -7,7 +7,7 @@ from pydantic import Field, SecretStr, computed_field
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
+_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 
 
 class Settings(BaseSettings):
@@ -24,10 +24,10 @@ class Settings(BaseSettings):
     app_redoc_url: str = "/redoc"
 
     # Database settings
-    mongo_user: str = Field(default=...)
-    mongo_password: SecretStr = Field(default=...)
-    mongo_host: str = Field(default=...)
-    mongo_name: str = Field(default=...)
+    mongo_user: str = Field(default="")
+    mongo_password: SecretStr = Field(default=SecretStr(""))
+    mongo_host: str = Field(default="")
+    mongo_name: str = Field(default="")
     mongo_min_pool_size: int = 10
     mongo_max_pool_size: int = 100
     mongo_ping_attempts: int = 5
@@ -45,7 +45,9 @@ class Settings(BaseSettings):
 
         return str(url)
 
-    model_config = SettingsConfigDict(env_file=_ENV_PATH)
+    model_config = SettingsConfigDict(
+        env_file=_ENV_PATH, extra="ignore", env_ignore_empty=True
+    )
 
 
 @lru_cache
