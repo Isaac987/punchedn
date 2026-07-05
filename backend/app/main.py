@@ -1,12 +1,16 @@
 from contextlib import asynccontextmanager
 
 import structlog
+from core import health
 from core.config import AppSettings, get_settings
 from core.database import connect_to_mongo, disconnect_from_mongo
 from core.logger import configure_logging
+from employees.models import Employee
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from middleware.logging_middleware import LoggingMiddleware
+
+DOCUMENT_MODELS = [Employee]
 
 _settings: AppSettings = get_settings()
 
@@ -18,7 +22,7 @@ async def lifespan(app: FastAPI):
     logger = structlog.get_logger(__name__)
     logger.info("Application Starting")
 
-    await connect_to_mongo(get_settings())
+    await connect_to_mongo(_settings, DOCUMENT_MODELS)
 
     yield
 
@@ -45,6 +49,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(health.router)
+
 
 if __name__ == "__main__":
     import uvicorn
