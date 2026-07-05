@@ -3,9 +3,10 @@ from contextlib import asynccontextmanager
 import structlog
 from core.config import AppSettings, get_settings
 from core.database import connect_to_mongo, disconnect_from_mongo
-from core.logger import LoggingMiddleware, configure_logging
+from core.logger import configure_logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from middleware.logging_middleware import LoggingMiddleware
 
 _settings: AppSettings = get_settings()
 
@@ -15,7 +16,7 @@ async def lifespan(app: FastAPI):
     configure_logging(_settings)
 
     logger = structlog.get_logger(__name__)
-    logger.info("Application Starting", service_name="punchedn", version="v1")
+    logger.info("Application Starting")
 
     await connect_to_mongo(get_settings())
 
