@@ -6,7 +6,7 @@ from core import database
 router = APIRouter(prefix="/health", tags=["health"])
 
 
-@router.get("/live")
+@router.get("/live", status_code=status.HTTP_200_OK)
 def liveness():
     return {"status": "healthy"}
 
