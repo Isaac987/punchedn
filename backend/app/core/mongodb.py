@@ -1,11 +1,11 @@
+import os
+from dotenv import load_dotenv
 from pymongo import AsyncMongoClient
 from pymongo.errors import PyMongoError
-from getpass import getpass
-import asyncio
 
-password = getpass("Input MongoDB Password")
+load_dotenv()
 
-url = f"mongodb+srv://punchedn_api_dev:{password}@punchedn-dev-uswest.p4ydp1q.mongodb.net/?appName=punchedn-dev-uswest"
+url = os.getenv("MONGODB_URL")
 
 client = AsyncMongoClient(url, serverSelectionTimeoutMS=5000)
 
