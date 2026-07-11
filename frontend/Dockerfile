@@ -7,7 +7,7 @@ COPY package.json package-lock.json ./
 # Install dependencies
 RUN npm install
 
-FROM base AS develop
+FROM base AS development
 COPY . .
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 
