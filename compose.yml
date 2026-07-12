@@ -5,7 +5,7 @@ services:
       context: ./backend
       target: development
     env_file:
-      - .env.dev
+      - .env
     # Removed ports: Caddy handles external access now
     develop:
       watch:
@@ -32,7 +32,7 @@ services:
     image: caddy:alpine
     restart: unless-stopped
     env_file:
-      - .env.dev
+      - .env
     environment:
       - CADDY_DOMAIN=${CADDY_DOMAIN}
     ports:

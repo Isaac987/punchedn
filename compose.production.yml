@@ -5,7 +5,7 @@ services:
       context: ./backend
       target: production # Uses the Gunicorn stage with the clean .venv
     env_file:
-      - .env.prod # Use a separate env file for production secrets
+      - .env
     restart: unless-stopped
 
   frontend:
@@ -18,7 +18,7 @@ services:
     image: caddy:alpine
     restart: unless-stopped
     env_file:
-      - .env.prod
+      - .env
     environment:
       - CADDY_DOMAIN=${CADDY_DOMAIN}
     ports:
