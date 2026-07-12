@@ -1,0 +1,53 @@
+# docker-compose.yml
+services:
+  backend:
+    build:
+      context: ./backend
+      target: development
+    env_file:
+      - .env
+    # Removed ports: Caddy handles external access now
+    develop:
+      watch:
+        # Corrected path to point specifically to the backend directory
+        - action: sync
+          path: ./backend
+          target: /app
+        - action: rebuild
+          path: ./backend/uv.lock 
+
+  frontend:
+    build: 
+      context: ./frontend
+      target: development
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+        - action: rebuild
+          path: ./frontend/package.json
+
+  caddy:
+    image: caddy:alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - CADDY_DOMAIN=${CADDY_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # Required for HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./site:/srv
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  caddy_data:
+  caddy_config:

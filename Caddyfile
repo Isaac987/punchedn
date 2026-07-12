@@ -1,0 +1,19 @@
+# Frontend
+{$CADDY_DOMAIN} {
+    reverse_proxy frontend:5173
+}
+
+# Backend
+api.{$CADDY_DOMAIN} {
+    reverse_proxy backend:8000
+}
+
+# # Logto Auth
+# auth.{$CADDY_DOMAIN} {
+#     reverse_proxy logto:3001
+# }
+
+# # Logto Admin
+# authadmin.{$CADDY_DOMAIN} {
+#     reverse_proxy logto:3002
+# }
