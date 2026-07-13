@@ -10,6 +10,7 @@
   <!-- <a href="#"><img src="https://img.shields.io/badge/version-0.1.0-orange.svg" alt="Version"></a> -->
   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/isaac987/punchedn">
   <a href="https://github.com/Isaac987/punchedn/pulls"><img alt="GitHub Issues or Pull Requests" src="https://img.shields.io/github/issues-pr/isaac987/punchedn"></a>
+  <a href="https://discord.gg/2bgWhtCHbb"><img alt="Discord" src="https://img.shields.io/discord/1526075110543462410"></a>
 </p>
 
 Tired of manually scheduling your employees? Cluttering your camera roll with pictures of your schedule?
