@@ -1,5 +1,4 @@
 from contextlib import asynccontextmanager
-
 import structlog
 from core import health
 from core.config import AppSettings, get_settings
@@ -9,25 +8,30 @@ from employees.models import Employee
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from middleware.logging_middleware import LoggingMiddleware
+from app.core.mongodb import test_connection, test_db_connection, close_connection
 
 DOCUMENT_MODELS = [Employee]
 
 _settings: AppSettings = get_settings()
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging(_settings)
-
     logger = structlog.get_logger(__name__)
     logger.info("Application Starting")
+    try:
+        await connect_to_mongo(_settings, DOCUMENT_MODELS)
 
-    await connect_to_mongo(_settings, DOCUMENT_MODELS)
-
+    finally:
+        await test_connection()
+        await test_db_connection()
     yield
 
-    await disconnect_from_mongo()
-    logger.info("Application shutting down")
+    try:
+        await disconnect_from_mongo()
+    finally:
+        await close_connection()
+        logger.info("Application shutting down")
 
 
 app = FastAPI(
