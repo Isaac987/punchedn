@@ -4,7 +4,7 @@ from typing import Annotated, Optional
 from beanie import Document, Indexed  # type: ignore
 
 
-class User(Document):
+class UserModel(Document):
     auth_id: Annotated[str, Indexed(unique=True)]
     first_name: str
     last_name: str
