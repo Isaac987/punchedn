@@ -1,18 +1,20 @@
 from contextlib import asynccontextmanager
+
 import structlog
-from core import health
+from api.router import api_router
 from core.config import AppSettings, get_settings
 from core.database import connect_to_mongo, disconnect_from_mongo
 from core.logger import configure_logging
+from core.mongodb import close_connection, test_connection, test_db_connection
 from employees.models import Employee
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from middleware.logging_middleware import LoggingMiddleware
-from app.core.mongodb import test_connection, test_db_connection, close_connection
 
 DOCUMENT_MODELS = [Employee]
 
 _settings: AppSettings = get_settings()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,7 +56,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router)
+app.include_router(api_router)
 
 
 # if __name__ == "__main__":
