@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Sequence
 
 import structlog
 from beanie import Document, init_beanie
@@ -23,7 +23,7 @@ async def _ping(client: AsyncMongoClient[dict[str, Any]], retry: int = 1):
 
 
 async def connect_to_mongo(
-    settings: AppSettings, document_models: list[type[Document]]
+    settings: AppSettings, document_models: Sequence[type[Document]]
 ) -> None:
     global _client
 
@@ -40,7 +40,7 @@ async def connect_to_mongo(
         raise
 
     # TODO: Define db name in settings
-    await init_beanie(database=_client["punchedn"], document_models=document_models)
+    await init_beanie(database=_client["PunchedN"], document_models=document_models)
 
 
 async def disconnect_from_mongo() -> None:
