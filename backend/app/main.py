@@ -6,12 +6,17 @@ from core.config import AppSettings, get_settings
 from core.database import connect_to_mongo, disconnect_from_mongo
 from core.logger import configure_logging
 from core.mongodb import close_connection, test_connection, test_db_connection
-from employees.models import Employee
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Import the exported feature beanie documents
+from features.users import feature_models as user_models
 from middleware.logging_middleware import LoggingMiddleware
 
-DOCUMENT_MODELS = [Employee]
+# Unpack every exported beanie document
+BEANIE_DOCUMENTS = [
+    *user_models,
+]
 
 _settings: AppSettings = get_settings()
 
@@ -22,7 +27,7 @@ async def lifespan(app: FastAPI):
     logger = structlog.get_logger(__name__)
     logger.info("Application Starting")
     try:
-        await connect_to_mongo(_settings, DOCUMENT_MODELS)
+        await connect_to_mongo(_settings, BEANIE_DOCUMENTS)
 
     finally:
         await test_connection()
