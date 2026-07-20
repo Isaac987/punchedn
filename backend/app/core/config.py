@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from fastapi import Depends
-from pydantic import Field, SecretStr, computed_field
+from pydantic import Field, HttpUrl, SecretStr, computed_field
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -50,6 +50,21 @@ class Settings(BaseSettings):
         )
 
         return str(url)
+
+    # Logto Settings
+    logto_uri: HttpUrl
+
+    @computed_field
+    @property
+    def logto_jwt_uri(self) -> str:
+        return f"{self.logto_uri}oidc/jwks"
+
+    @computed_field
+    @property
+    def logto_issuer_uri(self) -> str:
+        return f"{self.logto_uri}oidc"
+
+    logto_audience_uri: str = "https://dev.punchedn.com/api"
 
     model_config = SettingsConfigDict(
         env_file=_ENV_PATH,

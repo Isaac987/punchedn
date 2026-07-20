@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 
 import structlog
-from core import health
+from api.router import api_router
 from core.config import AppSettings, get_settings
 from core.database import connect_to_mongo, disconnect_from_mongo
 from core.logger import configure_logging
@@ -56,7 +56,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(health.router)
+app.include_router(api_router)
 
 
 # if __name__ == "__main__":
