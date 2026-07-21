@@ -34,9 +34,7 @@ class Settings(BaseSettings):
     mongo_password: SecretStr = Field(default=SecretStr(""))
     mongo_host: str = Field(default="")
     mongo_name: str = Field(default="")
-    mongo_min_pool_size: int = 10
-    mongo_max_pool_size: int = 100
-    mongo_ping_attempts: int = 5
+    database_name: str = Field(default="")
 
     @computed_field
     @property
