@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional
 
 from beanie import PydanticObjectId
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
@@ -18,6 +18,7 @@ class UserRead(UserBase):
     roles: List[str] = []
     is_active: bool
     created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreate(UserBase): ...
