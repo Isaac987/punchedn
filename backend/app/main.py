@@ -3,9 +3,8 @@ from contextlib import asynccontextmanager
 import structlog
 from api.router import api_router
 from core.config import AppSettings, get_settings
-from core.database import connect_to_mongo, disconnect_from_mongo
+from core.database import databaseManager
 from core.logger import configure_logging
-from core.mongodb import close_connection, test_connection, test_db_connection
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -26,19 +25,16 @@ async def lifespan(app: FastAPI):
     configure_logging(_settings)
     logger = structlog.get_logger(__name__)
     logger.info("Application Starting")
-    try:
-        await connect_to_mongo(_settings, BEANIE_DOCUMENTS)
 
-    finally:
-        await test_connection()
-        await test_db_connection()
+    # Connect to the database
+    # Let any errors happen, we handle retry logic in the database manager
+    # If it fails at this point, then we let the applicaiton DIE
+    await databaseManager.connect(BEANIE_DOCUMENTS)
+
     yield
 
-    try:
-        await disconnect_from_mongo()
-    finally:
-        await close_connection()
-        logger.info("Application shutting down")
+    # Close the database connection
+    await databaseManager.disconnect()
 
 
 app = FastAPI(
@@ -62,14 +58,3 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
-
-
-# if __name__ == "__main__":
-#     import uvicorn
-
-#     uvicorn.run(
-#         "main:app",
-#         host="0.0.0.0",
-#         port=8000,
-#         reload=True,
-#     )
