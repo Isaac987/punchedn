@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
-from core import database
+from core.database import databaseManager
 
 router = APIRouter(prefix="/health", tags=["health"])
 
@@ -16,7 +16,7 @@ async def readiness():
     checks = {}
     status_code = status.HTTP_200_OK
 
-    if await database.health_check():
+    if await databaseManager.get_health():
         checks["mongodb"] = "healthy"
     else:
         checks["mongodb"] = "healthy"
