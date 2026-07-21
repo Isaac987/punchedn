@@ -1,70 +1,108 @@
-from typing import Any, Sequence
+from typing import Any, Dict, Sequence
 
 import structlog
-from beanie import Document, init_beanie
+from beanie import Document, init_beanie  # type: ignore
 from pymongo import AsyncMongoClient
 from pymongo.errors import PyMongoError
-from tenacity import AsyncRetrying, stop_after_attempt, wait_exponential
+from tenacity import AsyncRetrying, Retrying, stop_after_attempt, wait_exponential
 
-from core.config import AppSettings
+from core.config import get_settings
 
+_settings = get_settings()
 _logger = structlog.get_logger(__name__)
-_client: AsyncMongoClient[dict[str, Any]] | None = None
 
 
-async def _ping(client: AsyncMongoClient[dict[str, Any]], retry: int = 1):
-    async for attempt in AsyncRetrying(
-        stop=stop_after_attempt(retry),
-        wait=wait_exponential(multiplier=1, min=1, max=10),
-        reraise=True,
+class DatabaseManager:
+    def __init__(
+        self,
+        mongo_uri: str,
+        database_name: str,
+        min_pool: int = 10,
+        max_pool: int = 100,
     ):
-        with attempt:
-            await client.admin.command("ping")
+        # Using the recommended type
+        # Ref: https://www.mongodb.com/docs/languages/python/pymongo-driver/current/connect/mongoclient/#:~:text=client%3A%20AsyncMongoClient%5BDict%5Bstr%2C%20Any%5D%5D%20%3D%20AsyncMongoClient()
+        self._client: AsyncMongoClient[Dict[str, Any]]
+        self._mongo_uri: str = mongo_uri
+        self._database_name: str = database_name
+        self._min_pool: int = min_pool
+        self._max_pool: int = max_pool
 
-
-async def connect_to_mongo(
-    settings: AppSettings, document_models: Sequence[type[Document]]
-) -> None:
-    global _client
-
-    _client = AsyncMongoClient(
-        settings.mongo_uri,
-        minPoolSize=settings.mongo_min_pool_size,
-        maxPoolSize=settings.mongo_max_pool_size,
-    )
-
-    try:
-        await _ping(_client, retry=settings.mongo_ping_attempts)
-    except PyMongoError:
-        _logger.exception("mongo_connection_failed")
-        raise
-
-    # TODO: Define db name in settings
-    await init_beanie(database=_client["PunchedN"], document_models=document_models)
-
-
-async def disconnect_from_mongo() -> None:
-    if _client:
-        await _client.close()
-
-
-async def get_client() -> AsyncMongoClient[dict[str, Any]]:
-    if _client is None:
-        raise RuntimeError(
-            "Mongo client not initialized — call connect_to_mongo() first"
+    async def connect(
+        self, models: Sequence[type[Document]], retry_connection: int = 5
+    ):
+        """
+        Initializes the AsyncMongoClient and registers all data models with Beanie.
+        """
+        _logger.info(
+            "mongodb_connection_starting",
+            database_name=_settings.database_name,
         )
 
-    return _client
-
-
-async def health_check() -> bool:
-    status: bool = False
-
-    if _client is not None:
         try:
-            await _client.admin.command("ping")
-            status = True
-        except Exception:
-            _logger.exception("readiness_check_failed")
+            # Try to connect to the database retry_connections times
+            for attempt in Retrying(
+                stop=stop_after_attempt(retry_connection),
+                wait=wait_exponential(multiplier=1, min=1, max=10),
+                reraise=True,
+            ):
+                with attempt:
+                    self._client = AsyncMongoClient(
+                        self._mongo_uri,
+                        minPoolSize=self._min_pool,
+                        maxPoolSize=self._max_pool,
+                    )
 
-    return status
+            # Try to ping the db and try to connect in different ways?
+            # Maybe we have a backup in the future.
+            # For now, just raise an error
+            # TODO: Try more things to get this db connected
+            if not await self.get_health():
+                raise ConnectionError
+
+            # Initalize beanie with document models & get/create the database
+            await init_beanie(self._client[self._database_name], document_models=models)
+
+            _logger.info("db_connection_successful")
+
+        except ConnectionError as e:
+            # We only catch this error to log it
+            # We want the server to crash if this fails
+            # TODO: Raise a custom exception
+            _logger.error(
+                "db_connection_failed",
+                error=str(e),
+                retried_times=retry_connection,
+                exc_info=True,
+            )
+            raise e
+
+    async def disconnect(self):
+        await self._client.close()
+
+    async def get_health(self, retry_ping: int = 3) -> bool:
+        """
+        Trys to ping the database retry_ping number of times.
+        This does not raise an exception, but signals the database is not responding.
+        """
+        status: bool = True
+
+        try:
+            # Try to ping the server retry_ping number of times
+            async for attempt in AsyncRetrying(
+                stop=stop_after_attempt(retry_ping),
+                wait=wait_exponential(multiplier=1, min=1, max=10),
+                reraise=True,
+            ):
+                with attempt:
+                    await self._client.admin.command("ping")
+        except PyMongoError as e:
+            _logger.error("db_not_responding", error=str(e), retried_times=retry_ping)
+            status = False
+
+        return status
+
+
+# Create a single instance of our database manager to be used by the application
+# One client can handle multiple requests at once
+databaseManager = DatabaseManager(_settings.mongo_uri, _settings.database_name)
