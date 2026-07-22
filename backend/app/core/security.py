@@ -48,7 +48,7 @@ class LogtoAuthenticator:
             for scope in security_scopes.scopes:
                 if scope not in scopes:
                     raise HTTPException(
-                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        status_code=status.HTTP_403_FORBIDDEN,
                         detail="Not enough permissions",
                     )
 
