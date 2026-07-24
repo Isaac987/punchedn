@@ -14,8 +14,6 @@ from starlette.datastructures import Headers
 from starlette.types import Scope
 from structlog.types import EventDict, Processor
 
-from core.config import AppSettings
-
 # Thread-safe context storage
 request_context: ContextVar[dict[str, Any]] = ContextVar("request_context")
 
@@ -91,7 +89,7 @@ def configure_third_party_loggers(level: int) -> None:
         logger.setLevel(log_level)
 
 
-def configure_logging(settings: AppSettings):
+def configure_logging(log_json: bool, log_level: str):
 
     # Shared processors for both structlog and standard logging
     shared_processors: Sequence[Processor] = [
@@ -106,7 +104,7 @@ def configure_logging(settings: AppSettings):
     ]
 
     # JSON or console rendering
-    if settings.log_json:
+    if log_json:
         renderer: Processor = structlog.processors.JSONRenderer()
     else:
         renderer: Processor = structlog.dev.ConsoleRenderer(
@@ -142,12 +140,12 @@ def configure_logging(settings: AppSettings):
 
     # Set up root logger
     root_logger = logging.getLogger()
-    root_logger.setLevel(settings.log_level)
+    root_logger.setLevel(log_level)
     root_logger.handlers.clear()
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
-    handler.setLevel(settings.log_level)
+    handler.setLevel(log_level)
     root_logger.addHandler(handler)
 
     configure_third_party_loggers(1)
