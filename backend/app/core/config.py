@@ -27,16 +27,15 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = (
         "DEBUG" if app_env == "development" else "INFO"
     )
-    log_json: bool = app_env != "development"
+    # log_json: bool = app_env != "development"
+    log_json: bool = False
 
     # Database settings
     mongo_user: str = Field(default="")
     mongo_password: SecretStr = Field(default=SecretStr(""))
     mongo_host: str = Field(default="")
     mongo_name: str = Field(default="")
-    mongo_min_pool_size: int = 10
-    mongo_max_pool_size: int = 100
-    mongo_ping_attempts: int = 5
+    database_name: str = Field(default="")
 
     @computed_field
     @property
@@ -53,6 +52,8 @@ class Settings(BaseSettings):
 
     # Logto Settings
     logto_uri: HttpUrl
+    logto_admin_app_id: str = Field(default="")
+    logto_admin_app_secret: SecretStr = Field(default=SecretStr(""))
 
     @computed_field
     @property
