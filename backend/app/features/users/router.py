@@ -1,61 +1,30 @@
 from typing import Annotated, List
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Body, Path, Query, status
+from fastapi import APIRouter, Body, Depends, Path, Query, status
 from pydantic import EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from .schemas import UserBase, UserCreate, UserResponse, UserUpdate
+from .service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-MOCK_USERS: List[UserBase] = [
-    UserBase(
-        first_name="Alice",
-        last_name="Smith",
-        email="alice.smith@example.com",
-        phone_number=PhoneNumber("+12025550101"),
-    ),
-    UserBase(
-        first_name="Bob",
-        last_name="Jones",
-        email="bob.jones@example.com",
-        phone_number=PhoneNumber("+12025550102"),
-    ),
-    UserBase(
-        first_name="Charlie",
-        last_name="Brown",
-        email="charlie.b@example.com",
-        phone_number=PhoneNumber("+12025550103"),
-    ),
-    UserBase(
-        first_name="Diana",
-        last_name="Prince",
-        email="diana.prince@example.com",
-        phone_number=PhoneNumber("+12025550104"),
-    ),
-    UserBase(
-        first_name="Evan",
-        last_name="Wright",
-        email="evan.w@example.com",
-        phone_number=PhoneNumber("+12025550105"),
-    ),
-]
-
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-def create_one(
+async def create_one(
     user: Annotated[
         UserCreate,
         Body(
             description="The user payload containing required fields to create a new account."
         ),
     ],
+    service: Annotated[UserService, Depends(UserService)],
 ) -> UserResponse:
     """
     Creates a new user.
     """
-    ...
+    return await service.create_user(user)
 
 
 @router.get("/me", status_code=status.HTTP_200_OK)
