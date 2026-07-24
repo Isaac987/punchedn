@@ -27,7 +27,8 @@ class Settings(BaseSettings):
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = (
         "DEBUG" if app_env == "development" else "INFO"
     )
-    log_json: bool = app_env != "development"
+    # log_json: bool = app_env != "development"
+    log_json: bool = False
 
     # Database settings
     mongo_user: str = Field(default="")
@@ -51,6 +52,8 @@ class Settings(BaseSettings):
 
     # Logto Settings
     logto_uri: HttpUrl
+    logto_admin_app_id: str = Field(default="")
+    logto_admin_app_secret: SecretStr = Field(default=SecretStr(""))
 
     @computed_field
     @property
