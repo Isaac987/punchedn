@@ -5,6 +5,7 @@ from api.router import api_router
 from core.config import AppSettings, get_settings
 from core.database import databaseManager
 from core.logger import configure_logging
+from core.security import LogtoAPIClient, get_logto_api_client
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,11 +19,12 @@ BEANIE_DOCUMENTS = [
 ]
 
 _settings: AppSettings = get_settings()
+_logto_client: LogtoAPIClient = get_logto_api_client()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    configure_logging(_settings)
+    configure_logging(_settings.log_json, _settings.log_level)
     logger = structlog.get_logger(__name__)
     logger.info("Application Starting")
 
@@ -30,11 +32,13 @@ async def lifespan(app: FastAPI):
     # Let any errors happen, we handle retry logic in the database manager
     # If it fails at this point, then we let the applicaiton DIE
     await databaseManager.connect(BEANIE_DOCUMENTS)
+    _logto_client.connect()
 
     yield
 
     # Close the database connection
     await databaseManager.disconnect()
+    await _logto_client.disconnect()
 
 
 app = FastAPI(
