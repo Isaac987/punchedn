@@ -23,6 +23,7 @@ class UserService:
     async def create_user(self, user: UserCreate) -> UserResponse:
 
         # Check if email and username are available before calling Logto
+        # TODO: Add check for username
         existing_user = await self._repository.get_by_email(user.email)
 
         if existing_user:
