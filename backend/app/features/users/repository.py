@@ -1,6 +1,24 @@
+from typing import List, Optional
+
+from beanie import PydanticObjectId
+
 from .models import UserModel
 
 
+# TODO: Implement UserRepository
 class UserRepository:
-    # TODO: Implement UserRepository
+    async def create(self, user: UserModel) -> UserModel:
+        await user.create()
+
+        return user
+
+    async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]: ...
+
     async def get_by_auth_id(self, auth_id: str) -> UserModel: ...
+
+    async def get_by_email(self, email: str) -> Optional[UserModel]:
+        return await UserModel.find_one(UserModel.email == email)
+
+    async def get_all_active_users(self) -> List[UserModel]: ...
+
+    async def update_user(self, user: UserModel) -> UserModel: ...
