@@ -29,4 +29,10 @@ async def get_current_user(
 
     user_model = await repository.get_by_auth_id(auth_id)
 
+    if user_model is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
     return user_model
