@@ -7,6 +7,8 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 
 from .schemas import UserBase, UserCreate, UserResponse, UserUpdate
 from .service import UserService
+from .dependencies import get_current_user
+from .models import UserModel
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -28,11 +30,11 @@ async def create_one(
 
 
 @router.get("/me", status_code=status.HTTP_200_OK)
-def get_me() -> UserResponse:
+def get_me(user: Annotated[UserModel, Depends(get_current_user)]) -> UserResponse:
     """
     Retrieves the profile of the currently authenticated user.
     """
-    ...
+    return user
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
