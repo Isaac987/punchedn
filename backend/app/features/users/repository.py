@@ -14,7 +14,8 @@ class UserRepository:
 
     async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]: ...
 
-    async def get_by_auth_id(self, auth_id: str) -> UserModel: ...
+    async def get_by_auth_id(self, auth_id: str) -> Optional[UserModel]:
+        return await UserModel.find_one(UserModel.auth_id == auth_id)
 
     async def get_by_email(self, email: str) -> Optional[UserModel]:
         return await UserModel.find_one(UserModel.email == email)
