@@ -44,3 +44,14 @@ class UserService:
         await self._repository.create(user_model)
 
         return UserResponse.model_validate(user_model)
+
+    async def get_by_id(self, id: str) -> UserResponse:
+        user_model = await self._repository.get_by_id(id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this id exists.",
+            )
+
+        return UserResponse.model_validate(user_model)
