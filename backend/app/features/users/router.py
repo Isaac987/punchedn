@@ -1,9 +1,11 @@
-from typing import Annotated, List
+from typing import Annotated, Any, Dict, List
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, Body, Depends, Path, Query, status
+from fastapi import APIRouter, Body, Depends, Path, Query, Security, status
 from pydantic import EmailStr
-from pydantic_extra_types.phone_numbers import PhoneNumber
+
+from core.security import verify_jwt
+from core.permissions import UserPermissions
 
 from .schemas import UserBase, UserCreate, UserResponse, UserUpdate
 from .service import UserService
@@ -38,16 +40,21 @@ def get_me(user: Annotated[UserModel, Depends(get_current_user)]) -> UserRespons
 
 
 @router.get("/{user_id}", status_code=status.HTTP_200_OK)
-def get_by_id(
+async def get_by_id(
     user_id: Annotated[
         PydanticObjectId,
         Path(description="The unique MongoDB/database identifier of the user."),
+    ],
+    service: Annotated[UserService, Depends(UserService)],
+    _payload: Annotated[
+        Dict[str, Any],
+        Security(verify_jwt, scopes=[UserPermissions.READ]),
     ],
 ) -> UserResponse:
     """
     Retrieves a specific user by their unique database ID.
     """
-    ...
+    return await service.get_by_id(user_id)
 
 
 @router.get("/email/{user_email}", status_code=status.HTTP_200_OK)
