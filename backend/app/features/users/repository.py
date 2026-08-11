@@ -12,7 +12,8 @@ class UserRepository:
 
         return user
 
-    async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]: ...
+    async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]:
+        return await UserModel.get(id)
 
     async def get_by_auth_id(self, auth_id: str) -> Optional[UserModel]:
         return await UserModel.find_one(UserModel.auth_id == auth_id)
@@ -20,6 +21,8 @@ class UserRepository:
     async def get_by_email(self, email: str) -> Optional[UserModel]:
         return await UserModel.find_one(UserModel.email == email)
 
-    async def get_all_active_users(self) -> List[UserModel]: ...
+    async def get_all_active_users(self) -> List[UserModel]:
+        return await UserModel.find_all(UserModel.is_active)
 
-    async def update_user(self, user: UserModel) -> UserModel: ...
+    async def update_user(self, user: UserModel) -> UserModel:
+        return await UserModel.save()
