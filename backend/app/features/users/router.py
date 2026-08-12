@@ -58,30 +58,40 @@ async def get_by_id(
 
 
 @router.get("/email/{user_email}", status_code=status.HTTP_200_OK)
-def get_by_email(
+async def get_by_email(
     user_email: Annotated[
         EmailStr, Path(description="The exact email address of the user to retrieve.")
+    ],
+    service: Annotated[UserService, Depends(UserService)],
+    _payload: Annotated[
+        Dict[str, Any],
+        Security(verify_jwt, scopes=[UserPermissions.READ]),
     ],
 ) -> UserResponse:
     """
     Retrieves a user by their email address.
     """
-    ...
+    return await service.get_by_email(user_email)
 
 
 @router.get("/auth/{auth_id}", status_code=status.HTTP_200_OK)
-def get_by_auth_id(
+async def get_by_auth_id(
     auth_id: Annotated[
         str,
         Path(
-            description="The unique ID provided by the external authentication provider (e.g., Auth0, Firebase)."
+            description="The unique ID provided by the external authentication provider (e.g., Logto, Auth0)."
         ),
+    ],
+    service: Annotated[UserService, Depends(UserService)],
+    _payload: Annotated[
+        Dict[str, Any],
+        Security(verify_jwt, scopes=[UserPermissions.READ]),
     ],
 ) -> UserResponse:
     """
     Retrieves a user by their external authentication provider ID.
     """
-    ...
+    return await service.get_by_auth_id(auth_id)
 
 
 @router.get("", status_code=status.HTTP_200_OK)
