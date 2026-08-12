@@ -55,3 +55,25 @@ class UserService:
             )
 
         return UserResponse.model_validate(user_model)
+
+    async def get_by_email(self, email: str) -> UserResponse:
+        user_model = await self._repository.get_by_email(email)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this email exists.",
+            )
+
+        return UserResponse.model_validate(user_model)
+
+    async def get_by_auth_id(self, auth_id: str) -> UserResponse:
+        user_model = await self._repository.get_by_auth_id(auth_id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this auth id exists.",
+            )
+
+        return UserResponse.model_validate(user_model)
