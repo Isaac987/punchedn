@@ -94,19 +94,22 @@ async def get_by_auth_id(
     return await service.get_by_auth_id(auth_id)
 
 
-@router.get("", status_code=status.HTTP_200_OK)
-def get_all(
-    in_active: Annotated[
+@router.get("/all/", status_code=status.HTTP_200_OK)
+async def get_all(
+    service: Annotated[UserService, Depends(UserService)],
+    _payload: Annotated[
+        Dict[str, Any],
+        Security(verify_jwt, scopes=[UserPermissions.READ]),
+    ],
+    is_active: Annotated[
         bool,
-        Query(
-            description="If true, includes deactivated employees in the returned list."
-        ),
+        Query(description="If true, includes deactivated users in the returned list."),
     ] = False,
-) -> List[UserBase]:
+) -> List[UserResponse]:
     """
-    Returns a list of all active employees.
+    Returns a list of all users.
     """
-    return MOCK_USERS
+    return await service.get_all(is_active=is_active)
 
 
 @router.patch("/{user_id}", status_code=status.HTTP_200_OK)

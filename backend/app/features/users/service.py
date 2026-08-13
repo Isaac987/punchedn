@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import structlog
 from core.security import LogtoAPIClient, get_logto_api_client
@@ -77,3 +77,12 @@ class UserService:
             )
 
         return UserResponse.model_validate(user_model)
+
+    async def get_all(self, is_active: bool) -> List[UserResponse]:
+        user_models = (
+            await self._repository.get_all_active_users()
+            if is_active
+            else await self._repository.get_all_users()
+        )
+
+        return [UserResponse.model_validate(user) for user in user_models]

@@ -21,8 +21,11 @@ class UserRepository:
     async def get_by_email(self, email: str) -> Optional[UserModel]:
         return await UserModel.find_one(UserModel.email == email)
 
+    async def get_all_users(self) -> List[UserModel]:
+        return await UserModel.find_all().to_list()
+
     async def get_all_active_users(self) -> List[UserModel]:
-        return await UserModel.find_all(UserModel.is_active)
+        return await UserModel.find(UserModel.is_active == True).to_list()  # noqa: E712
 
     async def update_user(self, user: UserModel) -> UserModel:
         return await UserModel.save()
