@@ -27,5 +27,7 @@ class UserRepository:
     async def get_all_active_users(self) -> List[UserModel]:
         return await UserModel.find(UserModel.is_active == True).to_list()  # noqa: E712
 
-    async def update_user(self, user: UserModel) -> UserModel:
-        return await UserModel.save()
+    async def update_user(
+        self, user: UserModel, update_dict: dict[str, any]
+    ) -> UserModel:
+        return await user.set(expression=update_dict)
