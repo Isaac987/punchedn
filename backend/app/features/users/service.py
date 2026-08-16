@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 
 from .models import UserModel
 from .repository import UserRepository
-from .schemas import UserCreate, UserResponse
+from .schemas import UserCreate, UserResponse, UserUpdate
 
 _logger = structlog.get_logger()
 
@@ -86,3 +86,32 @@ class UserService:
         )
 
         return [UserResponse.model_validate(user) for user in user_models]
+
+    async def update(self, id: str, user_update: UserUpdate) -> UserResponse:
+        user_model = await self._repository.get_by_id(id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this id exists.",
+            )
+
+        update_dict = user_update.model_dump(exclude_unset=True)
+        user_response = await self._repository.update_user(user_model, update_dict)
+
+        return UserResponse.model_validate(user_response)
+
+    async def deactivate(self, id: str) -> UserResponse:
+        user_model = await self._repository.get_by_id(id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this id exists.",
+            )
+
+        user_response = await self._repository.update_user(
+            user_model, {"is_active": False}
+        )
+
+        return UserResponse.model_validate(user_response)

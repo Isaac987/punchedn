@@ -1,16 +1,15 @@
 from typing import Annotated, Any, Dict, List
 
 from beanie import PydanticObjectId
+from core.permissions import UserPermissions
+from core.security import verify_jwt
 from fastapi import APIRouter, Body, Depends, Path, Query, Security, status
 from pydantic import EmailStr
 
-from core.security import verify_jwt
-from core.permissions import UserPermissions
-
-from .schemas import UserBase, UserCreate, UserResponse, UserUpdate
-from .service import UserService
 from .dependencies import get_current_user
 from .models import UserModel
+from .schemas import UserCreate, UserResponse, UserUpdate
+from .service import UserService
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -113,32 +112,42 @@ async def get_all(
 
 
 @router.patch("/{user_id}", status_code=status.HTTP_200_OK)
-def update(
+async def update(
     user_id: Annotated[
         PydanticObjectId,
         Path(description="The unique database identifier of the user to update."),
     ],
-    user: Annotated[
+    user_update: Annotated[
         UserUpdate,
         Body(
             description="The fields to update. Only the provided fields will be modified."
         ),
     ],
+    service: Annotated[UserService, Depends(UserService)],
+    _payload: Annotated[
+        Dict[str, Any],
+        Security(verify_jwt, scopes=[UserPermissions.READ, UserPermissions.WRITE]),
+    ],
 ) -> UserResponse:
     """
     Partially updates specific fields of an existing user's profile.
     """
-    ...
+    return await service.update(user_id, user_update)
 
 
-@router.patch("/{user_id}/deactivate", status_code=status.HTTP_204_NO_CONTENT)
-def deactivate(
+@router.patch("/deactivate/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def deactivate(
     user_id: Annotated[
         PydanticObjectId,
         Path(description="The unique database identifier of the user to deactivate."),
+    ],
+    service: Annotated[UserService, Depends(UserService)],
+    _payload: Annotated[
+        Dict[str, Any],
+        Security(verify_jwt, scopes=[UserPermissions.READ, UserPermissions.WRITE]),
     ],
 ) -> None:
     """
     Deactivates a user account without permanently deleting the record.
     """
-    ...
+    return await service.deactivate(user_id)
