@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import structlog
 from core.security import LogtoAPIClient, get_logto_api_client
@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 
 from .models import UserModel
 from .repository import UserRepository
-from .schemas import UserCreate, UserResponse
+from .schemas import UserCreate, UserResponse, UserUpdate
 
 _logger = structlog.get_logger()
 
@@ -44,3 +44,74 @@ class UserService:
         await self._repository.create(user_model)
 
         return UserResponse.model_validate(user_model)
+
+    async def get_by_id(self, id: str) -> UserResponse:
+        user_model = await self._repository.get_by_id(id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this id exists.",
+            )
+
+        return UserResponse.model_validate(user_model)
+
+    async def get_by_email(self, email: str) -> UserResponse:
+        user_model = await self._repository.get_by_email(email)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this email exists.",
+            )
+
+        return UserResponse.model_validate(user_model)
+
+    async def get_by_auth_id(self, auth_id: str) -> UserResponse:
+        user_model = await self._repository.get_by_auth_id(auth_id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this auth id exists.",
+            )
+
+        return UserResponse.model_validate(user_model)
+
+    async def get_all(self, is_active: bool) -> List[UserResponse]:
+        user_models = (
+            await self._repository.get_all_active_users()
+            if is_active
+            else await self._repository.get_all_users()
+        )
+
+        return [UserResponse.model_validate(user) for user in user_models]
+
+    async def update(self, id: str, user_update: UserUpdate) -> UserResponse:
+        user_model = await self._repository.get_by_id(id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this id exists.",
+            )
+
+        update_dict = user_update.model_dump(exclude_unset=True)
+        user_response = await self._repository.update_user(user_model, update_dict)
+
+        return UserResponse.model_validate(user_response)
+
+    async def deactivate(self, id: str) -> UserResponse:
+        user_model = await self._repository.get_by_id(id)
+
+        if user_model is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No user with this id exists.",
+            )
+
+        user_response = await self._repository.update_user(
+            user_model, {"is_active": False}
+        )
+
+        return UserResponse.model_validate(user_response)

@@ -12,13 +12,22 @@ class UserRepository:
 
         return user
 
-    async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]: ...
+    async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]:
+        return await UserModel.get(id)
 
-    async def get_by_auth_id(self, auth_id: str) -> UserModel: ...
+    async def get_by_auth_id(self, auth_id: str) -> Optional[UserModel]:
+        return await UserModel.find_one(UserModel.auth_id == auth_id)
 
     async def get_by_email(self, email: str) -> Optional[UserModel]:
         return await UserModel.find_one(UserModel.email == email)
 
-    async def get_all_active_users(self) -> List[UserModel]: ...
+    async def get_all_users(self) -> List[UserModel]:
+        return await UserModel.find_all().to_list()
 
-    async def update_user(self, user: UserModel) -> UserModel: ...
+    async def get_all_active_users(self) -> List[UserModel]:
+        return await UserModel.find(UserModel.is_active == True).to_list()  # noqa: E712
+
+    async def update_user(
+        self, user: UserModel, update_dict: dict[str, any]
+    ) -> UserModel:
+        return await user.set(expression=update_dict)
