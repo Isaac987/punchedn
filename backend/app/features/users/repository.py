@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, list
 
 from beanie import PydanticObjectId
 
@@ -12,22 +12,22 @@ class UserRepository:
 
         return user
 
-    async def get_by_id(self, id: PydanticObjectId) -> Optional[UserModel]:
+    async def get_by_id(self, id: PydanticObjectId) -> UserModel | None:
         return await UserModel.get(id)
 
-    async def get_by_auth_id(self, auth_id: str) -> Optional[UserModel]:
+    async def get_by_auth_id(self, auth_id: str) -> UserModel | None:
         return await UserModel.find_one(UserModel.auth_id == auth_id)
 
-    async def get_by_email(self, email: str) -> Optional[UserModel]:
+    async def get_by_email(self, email: str) -> UserModel | None:
         return await UserModel.find_one(UserModel.email == email)
 
-    async def get_all_users(self) -> List[UserModel]:
+    async def get_all_users(self) -> list[UserModel]:
         return await UserModel.find_all().to_list()
 
-    async def get_all_active_users(self) -> List[UserModel]:
-        return await UserModel.find(UserModel.is_active == True).to_list()  # noqa: E712
+    async def get_all_active_users(self) -> list[UserModel]:
+        return await UserModel.find(UserModel.is_active == True).to_list()
 
     async def update_user(
-        self, user: UserModel, update_dict: dict[str, any]
+        self, user: UserModel, update_dict: dict[str, Any]
     ) -> UserModel:
         return await user.set(expression=update_dict)
