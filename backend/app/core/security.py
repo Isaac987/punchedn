@@ -1,5 +1,6 @@
 import time
-from typing import Annotated, Any, Dict, Generator
+from collections.abc import Generator
+from typing import Annotated, Any
 
 import httpx
 import jwt
@@ -157,7 +158,7 @@ class LogtoAuthenticator:
         self,
         credentials: Annotated[HTTPAuthorizationCredentials, Depends(_security)],
         security_scopes: SecurityScopes,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         token = credentials.credentials
 
         try:
@@ -176,8 +177,6 @@ class LogtoAuthenticator:
             # Extract the scopes and tokenize
             scopes = payload.get("scope", "").split(" ")
 
-            print(security_scopes.scopes)
-
             for scope in security_scopes.scopes:
                 if scope not in scopes:
                     raise HTTPException(
@@ -192,21 +191,21 @@ class LogtoAuthenticator:
 
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Unable to fetch JWKS: {str(e)}",
+                detail=f"Unable to fetch JWKS: {e!s}",
             )
         except jwt.ExpiredSignatureError as e:
             _logger.warning("auth_token_expired", error=str(e))
 
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Token expired: {str(e)}",
+                detail=f"Token expired: {e!s}",
             )
         except jwt.InvalidTokenError as e:
             _logger.warning("auth_token_invalid", error=str(e))
 
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=f"Invalid token: {str(e)}",
+                detail=f"Invalid token: {e!s}",
             )
 
 
