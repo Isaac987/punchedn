@@ -177,7 +177,7 @@ PunchedN will handle sensitive data such as pay rates and health information. If
 
 ## License
 
-The license has not been decided yet. A proprietary EULA is expected; an open-core model is still being considered (see [01 — Product Overview](docs/01-overview.md#open-questions)). Until a license is published, all rights are reserved.
+The license has not been decided yet. A proprietary EULA is expected; an open-core model is still being considered (see [01 — Product Overview](docs/01-overview.md#open-questions)). Until a license is published, all rights are reserved (see [LICENSE](LICENSE)).
 
 ## Acknowledgments
 
