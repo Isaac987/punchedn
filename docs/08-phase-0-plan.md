@@ -90,6 +90,7 @@
 - [ ] `ci.yml`: backend, frontend, API-client check, security scans, image build + Trivy, E2E against Compose
 - [ ] `release-please.yml`
 - [ ] `release.yml` (on tag): buildx for both processor types → GHCR, SBOM, Trivy, **cosign sign**, release notes + install bundle
+- [ ] Make sure release-please's tag actually starts the release build. Tags pushed with the default `GITHUB_TOKEN` don't trigger other workflows, so either run the build in the release-please workflow when it reports `release_created` (preferred), or give release-please a GitHub App token
 - [ ] `upgrade-test` job (turned on from `v0.1.1` onward)
 - [ ] CodeQL workflow
 - [ ] Required status checks on `main`
