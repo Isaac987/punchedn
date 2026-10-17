@@ -1,0 +1,109 @@
+# 08 — Phase 0 Plan: Foundation
+
+**Goal:** a production-grade skeleton that installs, updates, rolls back and restores, before any features exist.
+
+**Exit criteria**
+- [ ] `v0.1.0` installs with one command on a clean **x86_64 Ubuntu VM** and an **ARM64** machine
+- [ ] Shows a branded page over HTTPS; `/api/v1/health/ready` returns OK
+- [ ] `punchedn update` to `v0.1.1` succeeds; a deliberately broken `v0.1.2` rolls back automatically
+- [ ] `punchedn update` refuses an unsigned image
+- [ ] Hardware security keys set up on every critical maintainer account
+- [ ] `punchedn backup` → wipe → `punchedn restore` gets the data back
+- [ ] CI passes on every PR; tagging a release publishes images for both processor types
+
+---
+
+## 0.1 Repository & tooling
+
+- [ ] Create the GitHub repo (private), branch protection on `main`
+- [ ] Monorepo layout as in [05](05-architecture.md#repository-layout-monorepo)
+- [x] `.editorconfig`, `.gitignore`, `.gitattributes`
+- [ ] `pre-commit`: ruff, ruff-format, prettier, eslint, gitleaks, end-of-file/trailing-whitespace, Conventional Commits message check (all but prettier/eslint done; those wait for `frontend/`)
+- [ ] `renovate.json` (weekly, grouped, pin Docker image versions)
+- [ ] Task runner (`justfile` or `Makefile`): `dev`, `test`, `lint`, `fmt`, `gen-api`, `build`
+- [x] Issue templates: bug report (asks for version + `request_id`), task; PR template; PR-title check
+- [ ] `LICENSE` (proprietary placeholder until the EULA is decided), `README`, `CHANGELOG`
+- [ ] **Maintainer security:** FIDO2 keys on GitHub, GHCR, Tailscale, email, registrar, password manager; encrypted laptop ([DQ-8](10-design-questions.md#dq-8-maintainer-access-is-the-biggest-security-risk))
+
+## 0.2 Backend skeleton
+
+- [ ] `uv` project, Python 3.15 pinned in `.python-version`, `uv.lock` committed
+- [ ] `core/config.py`: pydantic-settings; app refuses to start on bad config, with a clear message
+- [ ] `core/logging.py`: structlog JSON/console, sensitive-key masking, request ID in context
+- [ ] `core/middleware.py`: `X-Request-ID`, access log, timing
+- [ ] `core/errors.py`: exception hierarchy + RFC 9457 handlers + catch-all handler
+- [ ] `core/db.py`: async engine and session dependency, `Base` with UUIDv7 IDs and timestamps
+- [ ] Alembic set up; first migration enables `btree_gist`; migration naming convention
+- [ ] `features/health`: `/health/live` and `/health/ready` (DB + migrations at head + worker heartbeat)
+- [ ] `features/system`: `/api/v1/system/info` (version, build time, install ID)
+- [ ] `core/security.py`: Argon2 hashing + token helpers + TOTP verify helper (`pyotp`, with clock-drift window) (no user feature yet; unit tested; [#028](09-decisions.md#028--built-in-authentication-no-bundled-identity-provider))
+- [ ] `core/timecalc.py`: elapsed hours, local-day assignment, splitting at workweek boundaries, age on a date, with Hypothesis tests around DST ([DQ-2](10-design-questions.md#dq-2--time-zones-overnight-shifts-and-daylight-saving))
+- [ ] `core/i18n.py`: translation setup for backend text (emails, PDFs, errors)
+- [ ] `worker.py`: Procrastinate app, a sample `ping` job, scheduled worker heartbeat
+- [ ] `cli.py`: `migrate`, `create-admin` (stub), `check-config`
+- [ ] Serve the built SPA from `/` with a fallback route for client-side routing
+- [ ] OpenAPI exported to `backend/openapi.json` during the build
+
+## 0.3 Backend tests
+
+- [ ] pytest + pytest-asyncio set up; markers `unit`, `integration`
+- [ ] testcontainers Postgres fixture (once per session) + transaction rollback per test
+- [ ] Tests: config validation, error handler output shape, request-ID propagation, health endpoints, password hashing, TOTP verification, migration up from empty
+- [ ] Coverage report + gate
+
+## 0.4 Frontend skeleton
+
+- [ ] Vite + React + TypeScript (`strict`), pnpm
+- [ ] Tailwind + shadcn/ui set up; **theme tokens as CSS variables** with a runtime override (branding-ready)
+- [ ] TanStack Query + Router; app shell layout (header with logo slot, nav, content)
+- [ ] Translation setup (react-i18next or Lingui) with `en` locale; lint rule against hard-coded text
+- [ ] Accessibility: eslint-plugin-jsx-a11y; axe check in the Playwright smoke test
+- [ ] Generated API client from `openapi.json`; `gen-api` script
+- [ ] Global error boundary + Problem Details error display (shows `request_id`)
+- [ ] Health/status page calling `/api/v1/system/info`
+- [ ] PWA manifest + icons (service worker can wait until P2)
+- [ ] ESLint, Prettier, Vitest + RTL + MSW with one example test
+- [ ] Playwright set up with one smoke test
+
+## 0.5 Container & deploy bundle
+
+- [ ] Multi-stage `Dockerfile`: Node 26 LTS build → `python:3.15-slim-trixie` runtime, non-root user, `HEALTHCHECK`
+- [ ] `deploy/compose.yaml`: `caddy`, `app`, `worker`, `postgres`, with healthchecks, restart policies, log rotation, named volumes
+- [ ] `deploy/compose.dev.yaml`: local Postgres for development
+- [ ] `deploy/Caddyfile`: automatic TLS mode + plain HTTP-behind-tunnel mode
+- [ ] `deploy/.env.example` documenting every variable
+
+## 0.6 `punchedn` admin command
+
+- [ ] Bash (or a small Python script) installed to `/usr/local/bin/punchedn`
+- [ ] `install`: preflight check (CPU architecture, RAM, disk, Docker/Compose versions, ports, NTP sync, outbound HTTPS), generate secrets, pull, migrate, start
+- [ ] `status`, `logs`
+- [ ] `backup` / `restore` (encrypted `pg_dump` + uploads archive; local destination for now)
+- [ ] `update [version]`: **check cosign signature** → backup → pull → migrate → health check → automatic rollback
+- [ ] `support-bundle` with secrets and personal data removed
+- [ ] Ansible playbook (host hardening, Docker, Tailscale, chrony, UFW, unattended-upgrades)
+- [ ] cloud-init template for cloud servers
+
+## 0.7 CI/CD
+
+- [ ] `ci.yml`: backend, frontend, API-client check, security scans, image build + Trivy, E2E against Compose
+- [ ] `release-please.yml`
+- [ ] `release.yml` (on tag): buildx for both processor types → GHCR, SBOM, Trivy, **cosign sign**, release notes + install bundle
+- [ ] `upgrade-test` job (turned on from `v0.1.1` onward)
+- [ ] CodeQL workflow
+- [ ] Required status checks on `main`
+
+## 0.8 Verification environments
+
+- [ ] Staging host (home mini PC or cheap ARM cloud server) running the latest release
+- [ ] Throwaway VM procedure for testing clean installs (document it in `docs/runbooks/`)
+
+---
+
+## Suggested order
+
+1. 0.1 → 0.2 → 0.3 (a working, tested API)
+2. 0.4 (frontend talking to the API)
+3. 0.5 + 0.7 except the release jobs (containers and CI green)
+4. 0.6 (admin command) → tag `v0.1.0` → 0.8 staging install
+5. Tag `v0.1.1`, test update, rollback and restore → **Phase 0 done**
