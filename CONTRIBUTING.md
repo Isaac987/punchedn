@@ -218,5 +218,6 @@ Project-specific rules (time handling, restricted fields, translations, money) a
 ## Versioning and releases
 
 - [Semantic Versioning](https://semver.org/): `0.x` until the first paying customer, `1.0.0` at commercial launch.
-- release-please opens a release PR from the commits on `main`. Merging it tags the version, updates `CHANGELOG.md` (in [Keep a Changelog](https://keepachangelog.com/) style), and triggers the image build.
-- Never edit `CHANGELOG.md` by hand. Write a better commit message instead.
+- release-please opens a release PR from the commits on `main`. Merging it tags the version, updates `CHANGELOG.md`, and triggers the image build.
+- `CHANGELOG.md` is generated from commit messages: `feat`, `fix`, `perf` and `revert` commits appear under their own headings, and other types are left out. The commit messages are the changelog, so write them for a reader.
+- Never edit `CHANGELOG.md` by hand; release-please overwrites it. Write a better commit message instead.

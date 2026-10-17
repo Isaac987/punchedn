@@ -128,5 +128,5 @@ Pick based on what paying customers ask for:
 - **Each extra platform adds a lot of ongoing work:** native app, hardware and integrations. Build them only for a paying customer.
 - **Don't start P4 until a pilot has used P3** for at least one full schedule cycle.
 - Settle the ⚠ data-model items in P1–P2. Changing them after the pilot means painful migrations.
-- Keep a `CHANGELOG` and a short weekly log of your own progress; with no team, they're your memory.
+- Write commit messages worth reading (release-please turns them into the `CHANGELOG`) and keep a short weekly log of your own progress; with no team, they're your memory.
 - Stop adding features at least 1–2 weeks before a pilot install; spend that time on ops and fixes.
