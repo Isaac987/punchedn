@@ -1,0 +1,20 @@
+# Normalize line endings to LF in the repo and on checkout
+* text=auto eol=lf
+
+# Scripts must stay LF so they run inside Linux containers
+*.sh text eol=lf
+deploy/bin/* text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# Lockfiles: collapse diffs on GitHub
+uv.lock linguist-generated=true
+pnpm-lock.yaml linguist-generated=true

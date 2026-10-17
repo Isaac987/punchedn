@@ -1,0 +1,20 @@
+
+
+# <type>(<optional scope>): <summary>
+#
+# Types:  feat fix perf refactor test docs build ci chore revert style
+# Scopes: backend frontend rules auth ops ci docs deps
+#
+# Summary: imperative mood ("add", not "added"), lowercase,
+#          no trailing period, header 72 characters or fewer.
+#
+# Body (optional, after one blank line): explain what and why,
+# not how. Wrap at 72 characters.
+#
+# Footer (optional, after one blank line):
+#   Closes #12
+#   Refs: docs/09-decisions.md #028
+#   BREAKING CHANGE: <what breaks and how to migrate>
+#   Co-Authored-By: Name <email>
+#
+# Full guide: CONTRIBUTING.md

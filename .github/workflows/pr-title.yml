@@ -1,0 +1,44 @@
+name: PR title
+
+# PRs are squash-merged, so the title becomes the commit on main.
+# It must be a Conventional Commit header for release-please to work.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional-title:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            perf
+            refactor
+            test
+            docs
+            build
+            ci
+            chore
+            revert
+            style
+          scopes: |
+            backend
+            frontend
+            rules
+            auth
+            ops
+            ci
+            docs
+            deps
+          requireScope: false
+          subjectPattern: ^[a-z].*[^.]$
+          subjectPatternError: |
+            The summary "{subject}" must start with a lowercase letter and not end with a period.

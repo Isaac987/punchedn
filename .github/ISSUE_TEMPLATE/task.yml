@@ -1,0 +1,43 @@
+name: Task
+description: A unit of work sized to one reviewable PR.
+title: "feat: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Title prefix: `feat:`, `fix:`, `chore:`, `docs:` or `spike:`, then a short lowercase description.
+        Add one `type:*`, one `priority:*` and at least one `area:*` label. See docs/11-conventions.md.
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One or two sentences on why this exists.
+    validations:
+      required: true
+  - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: Observable checks that prove it works (a test, a command, a page).
+    validations:
+      required: true
+  - type: input
+    id: depends
+    attributes:
+      label: Depends on
+      placeholder: "#7, #12"
+  - type: textarea
+    id: refs
+    attributes:
+      label: Refs
+      placeholder: |
+        - docs/08-phase-0-plan.md §0.2
+        - docs/09-decisions.md #028
