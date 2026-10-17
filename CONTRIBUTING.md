@@ -62,6 +62,14 @@ Nobody commits directly to `main`. The `no-commit-to-branch` hook blocks it loca
 
 Use lowercase words joined by hyphens, and add the issue number when there is one: `feat/12-timecalc-module`, `fix/31-dst-hour-total`.
 
+To create a branch for an issue, use the GitHub CLI. It creates the branch, links it to the issue, and checks it out:
+
+```bash
+gh issue develop 12 --name feat/12-timecalc-module --base main --checkout
+```
+
+GitHub's "Create a branch" button on an issue suggests a name like `12-add-timecalc-module`, which doesn't follow this format. If you use the button, rename the branch in the dialog before you create it.
+
 ## Commit messages
 
 Commits follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). A `commit-msg` hook rejects anything else, and release-please builds version numbers and the changelog from these messages.
