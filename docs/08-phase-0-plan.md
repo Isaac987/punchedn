@@ -28,6 +28,7 @@
 ## 0.2 Backend skeleton
 
 - [ ] `uv` project, Python 3.15 pinned in `.python-version`, `uv.lock` committed
+- [ ] Move `.python-version` from the repo root to `backend/`, next to `pyproject.toml`, so the backend Docker build context includes it. Point CI at `backend/.python-version` and update the path in [02 — Tech stack](02-tech-stack.md#versions)
 - [ ] `core/config.py`: pydantic-settings; app refuses to start on bad config, with a clear message
 - [ ] `core/logging.py`: structlog JSON/console, sensitive-key masking, request ID in context
 - [ ] `core/middleware.py`: `X-Request-ID`, access log, timing
