@@ -30,7 +30,13 @@ git config commit.template .gitmessage
 
 The hooks run on every commit. To check the whole repo at once, run `pre-commit run --all-files`.
 
-Language tooling (uv for Python, pnpm for the frontend) and the task runner arrive with [Phase 0](docs/08-phase-0-plan.md). This section will be updated then.
+Common tasks run through [just](https://just.systems/). Install it, then run `just` to list the recipes:
+
+```bash
+uv tool install rust-just
+```
+
+Language tooling (uv for Python, pnpm for the frontend) arrives with [Phase 0](docs/08-phase-0-plan.md). This section will be updated then.
 
 ## Workflow
 
